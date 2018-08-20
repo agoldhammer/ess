@@ -1,4 +1,5 @@
 data/
+immdata/
 .DS_Store
 .ipynb*
 
