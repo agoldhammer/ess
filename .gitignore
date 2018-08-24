@@ -2,4 +2,5 @@ data/
 immdata/
 .DS_Store
 .ipynb*
-
+*.pyc
+*.py~
