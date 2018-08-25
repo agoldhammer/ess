@@ -29,7 +29,7 @@ def weighted_value_counts(x, normalize=False):
     c0 = x.columns[0]
     c1 = x.columns[1]
     xtmp = x[[c0, c1]].groupby(c0).agg({c1: 'sum'}).sort_values(c1,
-                                                                ascending=False)
+                                                                ascending= False)
     s = pd.Series(index=xtmp.index, data=xtmp[c1], name=c0)
     if normalize:
         s = s / x[c1].sum()
@@ -67,3 +67,25 @@ def barplot(df, var, countries=None):
             else:
                 ax.set_title(f"No data for {var}\n country {c} round {round}")
         plt.show()
+
+
+def get_wtd_val_cts(df, cntry, round, var):
+    """
+    Get weighted value counts for var and country in df
+    :df: The data frame to work on, should be imm for this notebook
+    :cntry: the country, string
+    :round: essround, int 1 or 7
+    :return: weighted counts
+    :rtype: Series
+    """
+    if cntry not in df.cntry.unique():
+        raise ValueError(f"Country {cntry} not in dataset")
+    if round not in df.essround.unique():
+        raise ValueError(f"Round {round} not in dataset")
+    if var not in df.columns:
+        raise ValueError(f"Variable {var} not in dataset")
+    grouped = df.groupby(['cntry', 'essround'])[[var, 'pspwght']]
+    s = weighted_value_counts(grouped.get_group((cntry, round)),
+                              normalize=True)
+    s = s.sort_index(ascending=True)
+    return s
