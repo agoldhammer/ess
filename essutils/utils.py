@@ -2,6 +2,7 @@ import pandas as pd
 # import numpy as np
 # import matplotlib
 import matplotlib.pyplot as plt
+import altair as alt
 
 IMMDATA = "~/Prog/EurSocSur/data/immdata.csv"
 
@@ -28,8 +29,8 @@ def weighted_value_counts(x, normalize=False):
 
     c0 = x.columns[0]
     c1 = x.columns[1]
-    xtmp = x[[c0, c1]].groupby(c0).agg({c1: 'sum'}).sort_values(c1,
-                                                                ascending= False)
+    xtmp = x[[c0, c1]].groupby(c0).agg({c1: 'sum'}).\
+        sort_values(c1, ascending=False)
     s = pd.Series(index=xtmp.index, data=xtmp[c1], name=c0)
     if normalize:
         s = s / x[c1].sum()
@@ -71,7 +72,7 @@ def barplot(df, var, countries=None):
 
 def get_wtd_val_cts(df, cntry, round, var):
     """
-    Get weighted value counts for var and country in df
+    Get weighted value counts for var and (country, round) in df
     :df: The data frame to work on, should be imm for this notebook
     :cntry: the country, string
     :round: essround, int 1 or 7
@@ -89,3 +90,39 @@ def get_wtd_val_cts(df, cntry, round, var):
                               normalize=True)
     s = s.sort_index(ascending=True)
     return s
+
+
+color_scale = alt.Scale(
+            domain=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 77, 88],
+            range=["red", "indianred", "salmon", "darkorange",
+                   "yellow", 'skyblue', "dodgerblue", "steelblue",
+                   'blue', 'midnightblue', "darkmagenta",
+                   "gray", "silver"])
+
+
+def plot_stacked_bars(df):
+    rnd = df.essrnd.iloc[0]
+    var = df.columns[1]
+    return alt.Chart(df).mark_bar().encode(
+        x=var,
+        y='cntry',
+        order=alt.Order('response', sort='ascending'),
+        color=alt.Color(
+            'response:O',
+            legend=alt.Legend(title='Response'),
+            scale=color_scale)).properties(title=f"Graph of {var} round {rnd}")
+
+
+def df2responses(dfin, cntry, rnd, var):
+    edata = get_wtd_val_cts(dfin, cntry, rnd, var)
+    edata.rename_axis("response", inplace=True)
+    df = edata.to_frame()
+    df["cntry"] = cntry
+    df['essrnd'] = rnd
+    df = df.reset_index()
+    return df
+
+
+def countries_to_plotting_frame(dfin, countries, rnd, var):
+    return pd.concat([df2responses(dfin, cntry, rnd, var) for cntry
+                      in countries])
