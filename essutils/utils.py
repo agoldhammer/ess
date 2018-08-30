@@ -3,6 +3,7 @@ import pandas as pd
 # import matplotlib
 import matplotlib.pyplot as plt
 import altair as alt
+#  from pprint import pprint
 
 IMMDATA = "~/Prog/EurSocSur/data/immdata.csv"
 
@@ -76,7 +77,7 @@ def get_wtd_val_cts(df, cntry, round, var):
     :df: The data frame to work on, should be imm for this notebook
     :cntry: the country, string
     :round: essround, int 1 or 7
-    :return: weighted counts
+    :return: weighted counts; if cntry missing, returns empty frame
     :rtype: Series
     """
     if cntry not in df.cntry.unique():
@@ -86,25 +87,29 @@ def get_wtd_val_cts(df, cntry, round, var):
     if var not in df.columns:
         raise ValueError(f"Variable {var} not in dataset")
     grouped = df.groupby(['cntry', 'essround'])[[var, 'pspwght']]
-    s = weighted_value_counts(grouped.get_group((cntry, round)),
-                              normalize=True)
+    try:
+        s = weighted_value_counts(grouped.get_group((cntry, round)),
+                                  normalize=True)
+    except KeyError:  # handle case of missing country data
+        s = pd.Series(data=[0], index=[0], name=var)
+        s.index.name = var
     s = s.sort_index(ascending=True)
     return s
 
 
 color_scale = alt.Scale(
-            domain=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 77, 88],
+            domain=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 77, 88, 99],
             range=["red", "indianred", "salmon", "darkorange",
                    "yellow", 'skyblue', "dodgerblue", "steelblue",
                    'blue', 'midnightblue', "darkmagenta",
-                   "gray", "silver"])
+                   "gray", "silver", "mistyrose"])
 
 
 def plot_stacked_bars(df):
     rnd = df.essrnd.iloc[0]
     var = df.columns[1]
     return alt.Chart(df).mark_bar().encode(
-        x=var,
+        alt.X(var, scale=alt.Scale(domain=[0, 1])),
         y='cntry',
         order=alt.Order('response', sort='ascending'),
         color=alt.Color(
@@ -126,3 +131,17 @@ def df2responses(dfin, cntry, rnd, var):
 def countries_to_plotting_frame(dfin, countries, rnd, var):
     return pd.concat([df2responses(dfin, cntry, rnd, var) for cntry
                       in countries])
+
+
+questions = ['acetalv', 'eimpcnt', 'gvrfgap', 'imbleco',
+             'imdetbs', 'imdetmr', 'imtcjob', 'imwbcrm',
+             'lwdscwp', 'noimbro', 'pplstrd', 'qfimchr',
+             'qfimcmt', 'qfimedu', 'qfimlng', 'qfimwht', 'qfimwsk']
+
+
+def plot_group(dfin, countries, rnd, var):
+    df = countries_to_plotting_frame(dfin, countries, rnd, var)
+    chart = plot_stacked_bars(df)
+    with alt.data_transformers.enable('json'):
+        chart.to_dict()
+    return chart
