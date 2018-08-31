@@ -8,6 +8,41 @@ import altair as alt
 IMMDATA = "~/Prog/EurSocSur/data/immdata.csv"
 
 
+questions = {'acetalv': ['Ppl of min race/eth in area',
+                         '1-alm none, 3-many, 789-ref/dk/na'],
+             'eimpcnt': ['Alw many/few from poorer cntrys',
+                         '1-many, 4-none, 789-ref/dk/na'],
+             'gvrfgap': ['Govt shd judge generously',
+                         '1/5-agr/dis, 789-ref/dk/na'],
+             'imbleco': ['Imm take more than put',
+                         '0-take more, 9-put more'],
+             'imdetbs': ['Boss diff race/eth',
+                         '0-dont mind, 9-mind a lot'],
+             'imdetmr': ['Imm marry close rel',
+                         '0-dont mind, 9-mind a lot'],
+             'imtcjob': ['Imm take/create jobs',
+                         '0-take, 9-create'],
+             'imwbcrm': ['Imm make crime worse/better',
+                         '0-worse, 9-better'],
+             'lwdscwp': ['Anti-disc law good/bad',
+                         '0-bad, 9-good'],
+             'noimbro': ['Estimate num', 'do not use'],
+             'pplstrd': ['Share tradition good',
+                         '1-agree str, 5-dis str'],
+             'qfimchr': ['Qualif Christian',
+                         '0-unimp, 10-imprtnt'],
+             'qfimcmt': ['Qualif cmtd way of life',
+                         '0-unimp, 10-imprtnt'],
+             'qfimedu': ['Qualif edu',
+                         '0-unimp, 10-imprtnt'],
+             'qfimlng': ['Qualif lang',
+                         '0-unimp, 10-imprtnt'],
+             'qfimwht': ['Qualif white',
+                         '0-unimp, 10-imprtnt'],
+             'qfimwsk': ['Qualif skills',
+                         '0-unimp, 10-imprtnt']}
+
+
 def get_data(filename):
     """
     Load ESS immigration data
@@ -107,7 +142,9 @@ color_scale = alt.Scale(
 
 def plot_stacked_bars(df):
     rnd = df.essrnd.iloc[0]
+    year = '2002' if rnd == 1 else '2014'
     var = df.columns[1]
+    annot = questions[var]
     return alt.Chart(df).mark_bar().encode(
         alt.X(var, scale=alt.Scale(domain=[0, 1])),
         y='cntry',
@@ -115,7 +152,8 @@ def plot_stacked_bars(df):
         color=alt.Color(
             'response:O',
             legend=alt.Legend(title='Response'),
-            scale=color_scale)).properties(title=f"Graph of {var} round {rnd}")
+            scale=color_scale)
+    ).properties(title=f"{annot[0]} * {year} * {annot[1]}")
 
 
 def df2responses(dfin, cntry, rnd, var):
@@ -131,12 +169,6 @@ def df2responses(dfin, cntry, rnd, var):
 def countries_to_plotting_frame(dfin, countries, rnd, var):
     return pd.concat([df2responses(dfin, cntry, rnd, var) for cntry
                       in countries])
-
-
-questions = ['acetalv', 'eimpcnt', 'gvrfgap', 'imbleco',
-             'imdetbs', 'imdetmr', 'imtcjob', 'imwbcrm',
-             'lwdscwp', 'noimbro', 'pplstrd', 'qfimchr',
-             'qfimcmt', 'qfimedu', 'qfimlng', 'qfimwht', 'qfimwsk']
 
 
 def plot_group(dfin, countries, rnd, var):
