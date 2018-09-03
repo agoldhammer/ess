@@ -157,6 +157,13 @@ def plot_stacked_bars(df):
 
 
 def df2responses(dfin, cntry, rnd, var):
+    """
+    Arrange weighted value counts for subsequent processing
+    :dfin : source dataframe (imm)
+    :cntry: country to process
+    :return: dataframe of weighted response data for country
+    """
+
     edata = get_wtd_val_cts(dfin, cntry, rnd, var)
     edata.rename_axis("response", inplace=True)
     df = edata.to_frame()
@@ -167,13 +174,55 @@ def df2responses(dfin, cntry, rnd, var):
 
 
 def countries_to_plotting_frame(dfin, countries, rnd, var):
+    """
+    Rearrange data in form suitable for plotting
+    :dfin : source data frame (imm)
+    :countries: list of countries to plot
+    :rnd: int, round number, 1 or 7
+    :var: string, name of var to plot
+    :return: dataframe of weighted responses
+    """
+
     return pd.concat([df2responses(dfin, cntry, rnd, var) for cntry
                       in countries])
 
 
 def plot_group(dfin, countries, rnd, var):
+    """
+    Plot graph of var for countries and rnd
+    :dfin : the source data frame (imm)
+    :countries: list of countries to include
+    :rnd: round number, integer 1 or 7
+    :var: string, variable to graph
+    :return: Altair chart
+    """
+
     df = countries_to_plotting_frame(dfin, countries, rnd, var)
     chart = plot_stacked_bars(df)
     with alt.data_transformers.enable('json'):
         chart.to_dict()
     return chart
+
+
+def duoplot(df, countries, var):
+    """
+    Horizontall concatenate rnds 1 and 7 of graph of var
+    :df : source data frame (imm)
+    :countries: list of countries
+    :return: horizontall concatenated Altair charts
+    """
+
+    chart1 = plot_group(df, countries, 1, var)
+    chart2 = plot_group(df, countries, 7, var)
+    return alt.hconcat(chart1, chart2)
+
+
+def multigroup_plot(df, groups, var):
+    """
+    Vertically concatenate paired plots from several groups
+    :df : source dataframe (imm)
+    :return: vertically concatenated Altair paired plots
+    """
+
+    charts = [duoplot(df, group, var) for group in groups]
+    return alt.vconcat(*charts)
