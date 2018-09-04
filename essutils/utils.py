@@ -132,12 +132,15 @@ def get_wtd_val_cts(df, cntry, round, var):
     return s
 
 
-color_scale = alt.Scale(
-            domain=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 77, 88, 99],
-            range=["red", "indianred", "salmon", "darkorange",
-                   "yellow", 'skyblue', "dodgerblue", "steelblue",
-                   'blue', 'midnightblue', "darkmagenta",
-                   "gray", "silver", "mistyrose"])
+color_scale = alt.Scale(scheme="spectral")
+
+
+# color_scale = alt.Scale(
+#             domain=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 77, 88, 99],
+#             range=["red", "indianred", "salmon", "darkorange",
+#                    "yellow", 'skyblue', "dodgerblue", "steelblue",
+#                    'blue', 'midnightblue', "darkmagenta",
+#                    "gray", "silver", "mistyrose"])
 
 
 def plot_stacked_bars(df):

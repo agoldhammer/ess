@@ -4,3 +4,4 @@ immdata/
 .ipynb*
 *.pyc
 *.py~
+*.json
